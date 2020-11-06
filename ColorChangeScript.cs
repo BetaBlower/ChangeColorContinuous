@@ -9,7 +9,8 @@ public class ColorChangeScript : MonoBehaviour
     //InspectorValues
     [SerializeField] List<Color> colors;
     [SerializeField] bool RunOnStart = true;
-    [SerializeField] [Range(0f,1f)]float speed = 0.3f;
+    [SerializeField] bool RunOnce = false;
+    [SerializeField] [Range(0f,2f)]float speed = 0.3f;
     
     Color color_present;
     Color color_target;
@@ -20,6 +21,7 @@ public class ColorChangeScript : MonoBehaviour
     Component component_color;
 
     bool is_running = false;
+    bool beginnig = true;
     
     void Start()
     {
@@ -33,6 +35,7 @@ public class ColorChangeScript : MonoBehaviour
     {
         if (!is_running)
         {
+            beginnig = true;
             is_running = true;
             Change_Color();
             StartCoroutine(Changing_Color());
@@ -41,28 +44,36 @@ public class ColorChangeScript : MonoBehaviour
     public void Stop()
     {
         changing_color = false;
+        is_running = false;
     }
     IEnumerator Changing_Color()//Renk değişim işlemi
     {
+        changing_color = true;
         while (changing_color)
         {
             if (Mathf.Abs(color_present.r - color_target.r) + Mathf.Abs(color_present.g - color_target.g) + Mathf.Abs(color_present.b - color_target.b) > treshhold)
             {
                 color_present = Color.Lerp(color_present, color_target, speed * Time.deltaTime);
             }
-            else 
+            else
             {
-                Change_Color();
+                if (RunOnce)
+                {
+                   
+                    break;
+                }
+ 		Change_Color();
             }
             Apply_Color();
             yield return new WaitForSeconds(Time.deltaTime);
         }
-        is_running = false;
+        Stop();
     }
 
     void Change_Color()//Hedef rengi güncelle
     {
-        color_present = color_present.a == 0f ? colors[0] : color_target;
+        color_present = beginnig ? colors[0] : color_target;
+        beginnig = false;
         color_target = color_present;
         while (color_target == color_present)
         {
@@ -119,7 +130,7 @@ public class ColorChangeScript : MonoBehaviour
         }
         if (colors[0].a == 0f)
         {
-            throw new System.Exception("First Color musn't %100 transparent. Change the first color 'a' value.");
+           // throw new System.Exception("First Color musn't %100 transparent. Change the first color 'a' value.");
         }
     }
     #endregion
